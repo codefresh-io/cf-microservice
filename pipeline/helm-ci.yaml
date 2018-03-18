@@ -6,8 +6,8 @@ steps:
     title: resolve chart details - name, version, appVersion
     image: alpine:3.7
     commands:
-    # find folder with Chart.yaml and get it's name
-    - export CHART_NAME=$(find . -name "Chart.yaml" | awk -F '[/]' '{print $2}')
+    # find first folder with Chart.yaml and get it's name
+    - export CHART_NAME=$(find . -name "Chart.yaml" | sort | head -n 1 | awk -F '[/]' '{print $2}')
     - cf_export CHART_NAME=$CHART_NAME
     # get appVersion from latest tag; fallback to appVersion value in Chart.yaml
     - "cf_export APP_VERSION=$(git describe --abbrev=0 2> /dev/null || grep \"appVersion: \" $CHART_NAME/Chart.yaml | awk '{print $2}')"
@@ -29,9 +29,10 @@ steps:
     image: codefresh/plugin-helm:2.8.1
     commands:
     - helm init --client-only
-    # build chart dependency acording to requirements.lock file
+    # build chart dependency acording to requirements.lock file, if USE_LOCK is true
+    # or use latest if not
     # TODO: verify child packages signatures
-    - helm dependency build
+    - if [ "$USE_LOCK" == "true" ]; then helm dependency build; else helm dependency update; fi
     # create package wiht APP_VERSION
     - helm package --appVersion $APP_VERSION --version $VERSION $CHART_NAME
     # TODO: sign package
