@@ -36,7 +36,7 @@ steps:
     # build chart dependency acording to requirements.lock file, if USE_LOCK is true
     # or use latest if not
     # TODO: verify child packages signatures
-    - if [ "$USE_LOCK" == "true" ]; then helm dependency build; else helm dependency update; fi
+    - if [ "$USE_LOCK" == "true" ]; then helm dependency build $CHART_NAME; else helm dependency update $CHART_NAME; fi
     # create package wiht APP_VERSION
     - helm package --appVersion $APP_VERSION --version $VERSION $CHART_NAME
     # TODO: sign package
