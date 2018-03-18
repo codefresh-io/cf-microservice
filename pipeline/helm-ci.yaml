@@ -39,7 +39,7 @@ steps:
     # init helm
     - helm init --client-only
     # add helm repository for codefresh: dev or stable
-    helm repo add codefresh $HELM_REPO
+    - helm repo add codefresh $HELM_REPO
     # build chart dependency acording to requirements.lock file, if USE_LOCK is true
     # or use latest if not
     # TODO: verify child packages signatures
