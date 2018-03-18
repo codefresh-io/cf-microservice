@@ -53,5 +53,4 @@ steps:
     image: codefresh/plugin-helm:2.8.1
     commands:
     - PACKAGE=$CHART_NAME-$VERSION.tgz
-    - curl -X POST --user ${{HELMREPO_USERNAME}}:${{HELMREPO_PASSWORD}} --fail --data-binary "@$PACKAGE" 
-    $HELM_REPO/api/chart
+    - curl -X POST --user ${{HELMREPO_USERNAME}}:${{HELMREPO_PASSWORD}} --fail --data-binary "@$PACKAGE" $HELM_REPO/api/chart
