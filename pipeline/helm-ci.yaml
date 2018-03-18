@@ -4,19 +4,23 @@ steps:
 
   resolve_chart_details:
     title: resolve chart details - name, version, appVersion
-    image: alpine:3.7
+    image: codefresh/plugin-helm:2.8.1
     commands:
     # find first folder with Chart.yaml and get it's name
-    - export CHART_NAME=$(find . -name "Chart.yaml" | sort | head -n 1 | awk -F '[/]' '{print $2}')
-    - cf_export CHART_NAME=$CHART_NAME
-    # get appVersion from latest tag; fallback to appVersion value in Chart.yaml
-    - "cf_export APP_VERSION=$(git describe --abbrev=0 2> /dev/null || grep \"appVersion: \" $CHART_NAME/Chart.yaml | awk '{print $2}')"
+    - CHART_NAME=$(find . -name "Chart.yaml" | sort | head -n 1 | awk -F '[/]' '{print $2}')
     # get package version
-    - "cf_export VERSION=$(grep \"version: \" $CHART_NAME/Chart.yaml | awk '{print $2}')"
+    - "VERSION=$(grep \"version: \" $CHART_NAME/Chart.yaml | awk '{print $2}')"
+    # get appVersion from latest tag; fallback to appVersion value in Chart.yaml
+    - "APP_VERSION=$(git describe --abbrev=0 2> /dev/null || grep \"appVersion: \" $CHART_NAME/Chart.yaml | awk '{print $2}')"
+    - if [ -z "$APP_VERSION" ]; then APP_VERSION=$VERSION; fi
+    - echo export chart details
+    - cf_export CHART_NAME=$CHART_NAME
+    - cf_export VERSION=$VERSION
+    - cf_export APP_VERSION=$APP_VERSION
 
   patch_chart_version:
     title: patch chart version for non-master; add branch after patch
-    image: alpine:3.7
+    image: codefresh/plugin-helm:2.8.1
     commands:
     - cf_export VERSION=$VERSION-${{CF_BRANCH}}
     when:
