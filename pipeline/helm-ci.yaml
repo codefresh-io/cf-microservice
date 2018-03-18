@@ -1,0 +1,44 @@
+version: '1.0'
+
+steps:
+
+  resolve_chart_details:
+    title: resolve chart details - name, version, appVersion
+    image: alpine:3.7
+    commands:
+    # find folder with Chart.yaml and get it's name
+    - export CHART_NAME=$(find . -name "Chart.yaml" | awk -F '[/]' '{print $2}')
+    - cf_export CHART_NAME=$CHART_NAME
+    # get appVersion from latest tag; fallback to appVersion value in Chart.yaml
+    - "cf_export APP_VERSION=$(git describe --abbrev=0 2> /dev/null || grep \"appVersion: \" $CHART_NAME/Chart.yaml | awk '{print $2}')"
+    # get package version
+    - "cf_export VERSION=$(grep \"version: \" $CHART_NAME/Chart.yaml | awk '{print $2}')"
+
+  patch_chart_version:
+    title: patch chart version for non-master; add branch after patch
+    image: alpine:3.7
+    commands:
+    - cf_export VERSION=$VERSION-${{CF_BRANCH}}
+    when:
+      branch:
+        ignore:
+          - master
+
+  package_chart:
+    title: package chart
+    image: codefresh/plugin-helm:2.8.1
+    commands:
+    - helm init --client-only
+    # build chart dependency acording to requirements.lock file
+    # TODO: verify child packages signatures
+    - helm dependency build
+    # create package wiht APP_VERSION
+    - helm package --appVersion $APP_VERSION --version $VERSION $CHART_NAME
+    # TODO: sign package
+
+  update_chart_repo:
+    title: update chart in repository
+    image: codefresh/plugin-helm:2.8.1
+    commands:
+    - PACKAGE=$CHART_NAME-$VERSION.tgz
+    - curl -X POST --user ${{BASIC_AUTH_USER}}:${{BASIC_AUTH_PASS}} --fail --data-binary "@$PACKAGE" ${{HELM_REPO_PATH}}
