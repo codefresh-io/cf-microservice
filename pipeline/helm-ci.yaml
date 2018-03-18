@@ -38,7 +38,7 @@ steps:
     commands:
     # init helm
     - helm init --client-only
-    # add helm repository for codefresh: dev or stable
+    # add helm repository for codefresh: develop or stable
     - helm repo add codefresh $HELM_REPO
     # build chart dependency acording to requirements.lock file, if USE_LOCK is true
     # or use latest if not
