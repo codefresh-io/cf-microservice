@@ -13,10 +13,14 @@ steps:
     # get appVersion from latest tag; fallback to appVersion value in Chart.yaml
     - "APP_VERSION=$(git describe --abbrev=0 2> /dev/null || grep \"appVersion: \" $CHART_NAME/Chart.yaml | awk '{print $2}')"
     - if [ -z "$APP_VERSION" ]; then APP_VERSION=$VERSION; fi
+    # get Helm Repo path
+    - HELM_REPO=$(env | grep "chartmuseum" | grep "codefresh.io" | awk -F'=' '{print $2}')
+    # export section
     - echo export chart details
     - cf_export CHART_NAME=$CHART_NAME
     - cf_export VERSION=$VERSION
     - cf_export APP_VERSION=$APP_VERSION
+    - cf_export HELM_REPO=$HELM_REPO
 
   patch_chart_version:
     title: patch chart version for non-master; add branch after patch
@@ -32,7 +36,10 @@ steps:
     title: package chart
     image: codefresh/plugin-helm:2.8.1
     commands:
+    # init helm
     - helm init --client-only
+    # add helm repository for codefresh: dev or stable
+    helm repo add codefresh $HELM_REPO
     # build chart dependency acording to requirements.lock file, if USE_LOCK is true
     # or use latest if not
     # TODO: verify child packages signatures
@@ -46,4 +53,5 @@ steps:
     image: codefresh/plugin-helm:2.8.1
     commands:
     - PACKAGE=$CHART_NAME-$VERSION.tgz
-    - curl -X POST --user ${{BASIC_AUTH_USER}}:${{BASIC_AUTH_PASS}} --fail --data-binary "@$PACKAGE" ${{HELM_REPO_PATH}}
+    - curl -X POST --user ${{HELMREPO_USERNAME}}:${{HELMREPO_PASSWORD}} --fail --data-binary "@$PACKAGE" 
+    $HELM_REPO/api/chart
