@@ -14,7 +14,8 @@ steps:
     - "APP_VERSION=$(git describe --abbrev=0 2> /dev/null || grep \"appVersion: \" $CHART_NAME/Chart.yaml | awk '{print $2}')"
     - if [ -z "$APP_VERSION" ]; then APP_VERSION=$VERSION; fi
     # get Helm Repo path
-    - HELM_REPO=$(env | grep "chartmuseum" | grep "codefresh.io" | awk -F'=' '{print $2}')
+    # - HELM_REPO=$(env | grep "chartmuseum" | grep "codefresh.io" | awk -F'=' '{print $2}')
+    - HELM_REPO=${{HELM_REPO}}
     # export section
     - echo export chart details
     - cf_export CHART_NAME=$CHART_NAME
@@ -53,4 +54,4 @@ steps:
     image: codefresh/plugin-helm:2.8.1
     commands:
     - PACKAGE=$CHART_NAME-$VERSION.tgz
-    - curl -X POST --user ${{HELMREPO_USERNAME}}:${{HELMREPO_PASSWORD}} --fail --data-binary "@$PACKAGE" $HELM_REPO/api/chart
+    - curl -X POST --user ${{BASIC_AUTH_USER}}:${{BASIC_AUTH_PATH}} --fail --data-binary "@$PACKAGE" $HELM_REPO/api/chart
