@@ -48,6 +48,8 @@ steps:
     # or use latest if not
     # TODO: verify child packages signatures
     - if [ "$USE_LOCK" == "true" ]; then helm dependency build $CHART_NAME; else helm dependency update $CHART_NAME; fi
+    # lint helm chart
+    - helm lint $CHART_NAME
     # create package with APP_VERSION
     - helm package --app-version $APP_VERSION --version $VERSION $CHART_NAME
     # TODO: sign package
