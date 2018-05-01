@@ -13,6 +13,7 @@ steps:
     type: build
     title: create Docker image with multi-stage build
     dockerfile: Dockerfile
+    no_cf_cache: true
     working_directory: ${{main_clone}}
     image_name: codefresh/${{CF_REPO_NAME}}
     build_arguments:
