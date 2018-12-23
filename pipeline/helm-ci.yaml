@@ -38,6 +38,7 @@ steps:
   package_chart:
     title: package chart
     image: codefresh/plugin-helm:2.12.0
+    commands:
     # init helm
     - helm init --client-only
     # add codefresh chart repositories for absolute reference
